@@ -1,10 +1,11 @@
 import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../types/supabase';
+import Constants from 'expo-constants';
 
-// Ensure URL is valid before creating client
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+// Get environment variables using Expo Constants
+const supabaseUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL ?? process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(
@@ -12,17 +13,15 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-// Validate URL format
-try {
-  new URL(supabaseUrl);
-} catch (error) {
-  throw new Error(
-    `Invalid Supabase URL format: ${supabaseUrl}. Please check your EXPO_PUBLIC_SUPABASE_URL environment variable.`
-  );
-}
-
 // Create a single supabase client for interacting with your database
 export const supabase = createClient<Database>(
   supabaseUrl,
-  supabaseAnonKey
+  supabaseAnonKey,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: false
+    }
+  }
 );
